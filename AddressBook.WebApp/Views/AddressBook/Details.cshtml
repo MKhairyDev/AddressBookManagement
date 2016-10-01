@@ -1,0 +1,153 @@
+﻿<!DOCTYPE html>
+<head>
+    <title>Map an Address</title>
+    <script src="~/Scripts/jquery-1.9.1.min.js" type="text/javascript"></script>
+    <style>
+        #map_canvas img {
+            max-width: none;
+        }
+    </style>
+
+    <!-- This css is to give a nice big popup "info window" when a marker is clicked on the map -->
+    <style>
+        .infoDiv {
+            height: 100px;
+            width: 300px;
+            -webkit-user-select: none;
+            background-color: white;
+        }
+    </style>
+</head>
+@model AddressBook.DTO.AddressBookDTO
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>Details</h2>
+
+<div>
+    <h4>Address Book</h4>
+    <hr />
+    <dl class="dl-horizontal">
+        <dt>
+            @Html.DisplayNameFor(model => model.Name)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Name)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Email)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Email)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.Address)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.Address)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.PhoneNumber)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.PhoneNumber)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.JobPosition)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.JobPosition)
+        </dd>
+
+        <dt>
+            @Html.DisplayNameFor(model => model.institution)
+        </dt>
+
+        <dd>
+            @Html.DisplayFor(model => model.institution)
+        </dd>
+
+
+    </dl>
+
+
+
+</div>
+
+<!-- This is the div that will contain the Google Map -->
+@if (!string.IsNullOrEmpty(Model.Address))
+{
+    <div id="map_canvas" style="height: 550px;"></div>
+
+    @section scripts {
+        <section class="scripts">
+            <script type="text/javascript">
+
+                $(document).ready(function () {
+                    Initialize();
+                });
+
+
+                function Initialize() {
+                    var geocoder = new google.maps.Geocoder();
+                    // Google has tweaked their interface somewhat - this tells the api to use that new UI
+                    google.maps.visualRefresh = true;
+                    var Tunisie = new google.maps.LatLng(36.81881, 10.16596);
+
+                    // These are options that set initial zoom level, where the map is centered globally to start, and the type of map to show
+                    var mapOptions = {
+                        zoom: 12,
+                        center: Tunisie,
+                        mapTypeId: google.maps.MapTypeId.G_NORMAL_MAP
+                    };
+
+                    // This makes the div with id "map_canvas" a google map
+                    var map = new google.maps.Map(document.getElementById("map_canvas"), mapOptions);
+
+
+                    geocoder.geocode({ 'address': '@Model.Address' }, function (results, status) {
+                        if (status == 'OK') {
+                            map.setCenter(results[0].geometry.location);
+                            var marker = new google.maps.Marker({
+                                map: map,
+                                position: results[0].geometry.location,
+                          
+                            });
+                            marker.setIcon('http://maps.google.com/mapfiles/ms/icons/blue-dot.png');
+                        
+                            var infowindow = new google.maps.InfoWindow({
+                                content: "<div class='infoDiv'><h2>" + '@Model.Address' + "</div></div>"
+                            });
+
+                            //// finally hook up an "OnClick" listener to the map so it pops up out info-window when the marker-pin is clicked!
+                            google.maps.event.addListener(marker, 'click', function () {
+                                infowindow.open(map, marker);
+                            });
+                        } else {
+                            alert('Geocode was not successful for the following reason: ' + status);
+                        }
+                    });
+
+                }
+
+            </script>
+        </section>
+    }
+}
+
+
+<p>
+    @Html.ActionLink("Edit", "Edit", new { id = Model.Id }) |
+    @Html.ActionLink("Back to List", "Index")
+</p>
